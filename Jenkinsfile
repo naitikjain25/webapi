@@ -42,4 +42,5 @@ pipeline {
                bat 'az webapp deploy --resource-group <your-resourcegroup> --name <your-app-service-name> --src-path webapi\\out --type zip'
             }
        }
+ }
 }
