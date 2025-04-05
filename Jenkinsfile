@@ -35,7 +35,7 @@ pipeline {
        stage('Publish .NET 8 Web API') {
            steps {
                dir('webapi') {
-                 bat 'dotnet publish -c Release -o out'
+                 bat 'dotnet publish -c Release -o publish'
                }
            }
        }
