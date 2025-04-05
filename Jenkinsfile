@@ -15,6 +15,12 @@ pipeline {
 
   
  stages {
+      stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/samriddhagarwal07/WebApplication6.git'
+            }
+        }
+
       stage('Terraform Init') {
            steps {
              dir('jenkins_assignment3') {
@@ -32,13 +38,14 @@ pipeline {
          }
       }
    
-       stage('Publish .NET 8 Web API') {
-           steps {
-               dir('webapi') {
-                 bat 'dotnet publish -c Release -o publish'
-               }
-           }
-       }
+       stage('Build') {
+            steps {
+                bat 'dotnet restore'
+                bat 'dotnet build --configuration Release'
+                bat 'dotnet publish -c Release -o ./publish'
+            }
+        }
+
    
        // stage('Deploy to Azure App Service') {
        //     steps {
@@ -51,16 +58,22 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
                     bat "az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID"
-                    bat "powershell Compress-Archive -Path ./webapi/publish/* -DestinationPath ./publish.zip -Force"
-                    bat '''
-                         az webapp deployment source config-zip ^
-                           --resource-group rg-jenkins ^
-                           --name webapijenkinsnaitik457 ^
-                           --src ./publish.zip
-                         '''
+                    bat "powershell Compress-Archive -Path ./publish/* -DestinationPath ./publish.zip -Force"
+                    bat "az webapp deploy --resource-group $RESOURCE_GROUP --name $APP_SERVICE_NAME --src-path ./publish.zip --type zip"
                 }
             }
         }
+
       
  }
+
+     post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Deployment Failed!'
+        }
+    }
+
 }
